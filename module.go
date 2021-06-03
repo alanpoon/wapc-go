@@ -23,7 +23,8 @@ import (
 //
 // extern void __console_log(void *context, int32_t ptr, int32_t len);
 // extern int32_t __fd_write(void *context, int32_t arg1, int32_t arg2, int32_t arg3, int32_t arg4);
-//
+// extern int32_t __args_get(void *context, int32_t arg1, int32_t arg2);
+// extern int32_t __args_sizes_get(void *context, int32_t arg1, int32_t arg2);
 // extern void abortModule(void *context, int32_t ptr1, int32_t len1, int32_t ptr2, int32_t len2);
 import "C"
 
@@ -65,8 +66,11 @@ func init() {
 	imports.AppendFunction("__host_error_len", __host_error_len, C.__host_error_len)
 	imports.AppendFunction("__host_error", __host_error, C.__host_error)
 	imports.AppendFunction("__console_log", __console_log, C.__console_log)
-	imports = imports.Namespace("wasi_unstable")
+	imports = imports.Namespace("wasi_snapshot_preview1")
 	imports.AppendFunction("fd_write", __fd_write, C.__fd_write)
+	imports.AppendFunction("args_sizes_get", __args_sizes_get, C.__args_sizes_get)
+	imports.AppendFunction("args_get", __args_get, C.__args_get)
+
 }
 
 // NoOpHostCallHandler is an noop host call handler to use if your host does not need to support host calls.
@@ -246,6 +250,20 @@ func __fd_write(context unsafe.Pointer, fileDescriptor, iovsPtr, iovsLen, writte
 	return imp.fdWrite(instanceContext.Memory(), fileDescriptor, iovsPtr, iovsLen, writtenPtr)
 }
 
+//export __args_sizes_get
+func __args_sizes_get(context unsafe.Pointer, iovsPtr, writtenPtr int32) int32 {
+	instanceContext := wasm.IntoInstanceContext(context)
+	imp := instanceContext.Data().(*functionContext)
+	return imp.argsSizesGet(instanceContext.Memory(), iovsPtr, writtenPtr)
+}
+
+//export __args_get
+func __args_get(context unsafe.Pointer, iovsPtr, writtenPtr int32) int32 {
+	instanceContext := wasm.IntoInstanceContext(context)
+	imp := instanceContext.Data().(*functionContext)
+	return imp.argsGet(instanceContext.Memory(), iovsPtr, writtenPtr)
+}
+
 //export abortModule
 func abortModule(context unsafe.Pointer, msgPtr int32, filePtr int32, line int32, col int32) {
 }
@@ -369,6 +387,29 @@ func (i *functionContext) fdWrite(memory *wasm.Memory, fileDescriptor, iovsPtr, 
 	return int32(bytesWritten)
 }
 
+//https://github.com/wasmerio/kernel-wasm/blob/536fa968583981c310f199331f5972d617300c5e/wasi/ext.c
+func (i *functionContext) argsSizesGet(memory *wasm.Memory, iovsPtr, writtenPtr int32) int32 {
+	if i.writer == nil {
+		return 0
+	}
+	data := memory.Data()
+	binary.LittleEndian.PutUint32(data[iovsPtr:], 1)
+	binary.LittleEndian.PutUint32(data[writtenPtr:], 5)
+	return 0
+}
+func (i *functionContext) argsGet(memory *wasm.Memory, iovsPtr, writtenPtr int32) int32 {
+	if i.writer == nil {
+		return 0
+	}
+	data := memory.Data()
+	data[iovsPtr] = 0
+	data[writtenPtr] = 'W'
+	data[writtenPtr+1] = 'A'
+	data[writtenPtr+2] = 'S'
+	data[writtenPtr+3] = 'M'
+	data[writtenPtr+4] = 0
+	return 0
+}
 func Println(message string) {
 	println(message)
 }
