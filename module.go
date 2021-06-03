@@ -66,7 +66,7 @@ func init() {
 	imports.AppendFunction("__host_error_len", __host_error_len, C.__host_error_len)
 	imports.AppendFunction("__host_error", __host_error, C.__host_error)
 	imports.AppendFunction("__console_log", __console_log, C.__console_log)
-	imports = imports.Namespace("wasi_snapshot_preview1")
+	imports = imports.Namespace("wasi_unstable")
 	imports.AppendFunction("fd_write", __fd_write, C.__fd_write)
 	imports.AppendFunction("args_sizes_get", __args_sizes_get, C.__args_sizes_get)
 	imports.AppendFunction("args_get", __args_get, C.__args_get)

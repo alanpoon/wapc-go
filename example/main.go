@@ -4,19 +4,13 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
-	"os"
 
 	"github.com/wapc/wapc-go"
 )
 
 func main() {
-	if len(os.Args) < 2 {
-		fmt.Println("usage: hello <name>")
-		return
-	}
-	name := os.Args[1]
 	ctx := context.Background()
-	code, err := ioutil.ReadFile("testdata/hello.wasm")
+	code, err := ioutil.ReadFile("testdata/gateway.wasm")
 	if err != nil {
 		panic(err)
 	}
@@ -35,7 +29,7 @@ func main() {
 	}
 	defer instance.Close()
 
-	result, err := instance.Invoke(ctx, "hello", []byte(name))
+	result, err := instance.Invoke(ctx, "get_user_info_from_token", []byte("joaaaaaaaaaaaaaakiangjoaaaaaaaaaaaaaakiangjoaaaaaaaaaaaaaakiangjoaaaaaaaaaaaaaakiangjoaaaaaaaaaaaaaakiangjoaaaaaaaaaaaaaakiangjoaaaaaaaaaaaaaakiangjoaaaaaaaaaaaaaakiangjoaaaaaaaaaaaaaakiangjoaaaaaaaaaaaaaakiang"))
 	if err != nil {
 		panic(err)
 	}
