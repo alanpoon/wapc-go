@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 
 	"github.com/wapc/wapc-go"
+	"github.com/wapc/wapc-go/example/bass_authentication.pb"
 )
 
 func main() {
@@ -28,13 +29,19 @@ func main() {
 		panic(err)
 	}
 	defer instance.Close()
-
-	result, err := instance.Invoke(ctx, "get_user_info_from_token", []byte("joaaaaaaaaaaaaaakiangjoaaaaaaaaaaaaaakiangjoaaaaaaaaaaaaaakiangjoaaaaaaaaaaaaaakiangjoaaaaaaaaaaaaaakiangjoaaaaaaaaaaaaaakiangjoaaaaaaaaaaaaaakiangjoaaaaaaaaaaaaaakiangjoaaaaaaaaaaaaaakiangjoaaaaaaaaaaaaaakiang"))
+	req := bass_authentication.GetUserInfoFromTokenRequest{
+		EncryptedToken: "moon",
+	}
+	b, _ := req.Marshal()
+	result, err := instance.Invoke(ctx, "get_user_info_from_token", b)
 	if err != nil {
 		panic(err)
 	}
+	a := bass_authentication.GetUserInfoFromTokenResponse{}
 
-	fmt.Println(string(result))
+	a.Unmarshal(result)
+	fmt.Println("a", a.Token)
+
 }
 
 func hostCall(ctx context.Context, binding, namespace, operation string, payload []byte) ([]byte, error) {
