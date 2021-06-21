@@ -166,7 +166,9 @@ func (i *Instance) Invoke(ctx context.Context, operation string, payload []byte)
 	if success {
 		return context.guestResp, nil
 	}
-
+	if context.guestErr != "" {
+		return nil, errors.WithStack(errors.New(context.guestErr))
+	}
 	return nil, errors.WithStack(errors.Errorf("call to %q was unsuccessful", operation))
 }
 
